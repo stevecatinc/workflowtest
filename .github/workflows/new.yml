@@ -1,0 +1,16 @@
+name: Build and push Docker images
+
+on:
+  push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: (github.event.comment.body == '/build')
+
+    steps:
+    - name: Fetch PR data from GitHub API
+      run: |
+        PR_DATA=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d '{"query":"query { repository(owner:\"stevecat\", name:\"toadpad\") { pullRequest(number:${{ github.event.issue.number }}) { headRef { target { oid }, name } } } } "}' https://api.github.com/graphql)
+        echo $PR_DATA | jq -r '.data.repository.pullRequest.headRef.target.oid' > "$HOME/.pr_oid"
+        echo $PR_DATA | jq -r '.data.repository.pullRequest.headRef.name' > "$HOME/.pr_branch"
